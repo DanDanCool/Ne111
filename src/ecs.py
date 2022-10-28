@@ -142,7 +142,7 @@ class component_system:
     # components() which returns a tuple of its components
     def group_create(self, name, descriptor):
         bitset = 0
-        for component in descriptor.components():
+        for component in descriptor.pools():
             assert component in self.pool_id
             p_id = self.pools_id[component]
             bitset = bitset | (1 << p_id)

@@ -1,0 +1,6 @@
+name = "Test"
+script = "test_script"
+
+[components]
+sprite_component = {}
+script_component = {}

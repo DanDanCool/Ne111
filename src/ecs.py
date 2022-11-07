@@ -3,7 +3,7 @@ NULL_ENTITY = -1
 
 class entity_id:
     def __init__(self, identity, version):
-        assert e_id == int
+        assert identity == int
         assert version == int
         self.identity = identity
         self.version = version

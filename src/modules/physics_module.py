@@ -1,2 +1,4 @@
-class physics_module(game_module):
+import module
+
+class physics_module(module):
     pass

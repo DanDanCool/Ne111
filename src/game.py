@@ -1,22 +1,43 @@
-import render_graph
-class sprite_render(render_graph.render_node):
-    def __init__(self, name):
-        pass
+import time
+import importlib
+import pathlib
 
 class game:
     def __init__(self):
-        self.brun = True;
+        g_game = self
+        self.b_run = True;
         self.component_system
 
-        # TODO: iterate through src/modules and add each module
+        self.lib = []
         self.modules = []
 
+        path = pathlib.Path('modules')
+        for p in path.iterdir():
+            m = importlib.import_module(p.name)
+            self.lib.append(m)
+            self.modules.append(m.create_module())
+
+    def reload(self):
+        for m in self.lib :
+            importlib.reload(m)
+
     def run(self):
-        return self.brun
+        last_time = time.perf_counter_ns()
+        while (self.b_run):
+            time = time.perf_counter_ns()
+            dt = time - last_time
 
-    def update(self, ts):
-        self.input.update()
+            for m in self.modules:
+                m.update(ts)
 
-        # update various game subsystems here....
-        for m in self.modules:
-            m.update(ts)
+    def should_run(self, run):
+        self.b_run = run
+
+    def get_ecs(self):
+        return self.component_system
+
+def get_game():
+    return game.g_game
+
+def get_ecs():
+    return game.g_game.get_ecs()

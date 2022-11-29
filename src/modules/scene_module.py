@@ -13,8 +13,11 @@ class scene_module(module):
         ecs.register("sprite_component", game.components.sprite_component)
         ecs.register("physics_component", game.components.physics_component)
         ecs.register("script_component", game.components.script_component)
+        ecs.register("dynamic_body", game.components.dynamic_body)
+        ecs.register("static_body", game.components.static_body)
 
-        ecs.group_create("sprite_physics", game.components.sprite_physics_group)
+        ecs.group_create("sprite_dynamic", game.components.sprite_dynamic)
+        ecs.group_create("sprite_static", game.components.sprite_static)
 
     # we do scene loading here to guarantee that all modules are loaded
     def update(ts):

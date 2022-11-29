@@ -19,7 +19,7 @@ class sprite_node(render_node):
         vertex_buffer = numpy.array()
         index_buffer = []
         offset = 0
-        for _, components in ecs.group("sprite_physics"):
+        for _, components in ecs.view("sprite_component"):
             sprite, physics = components
             for i in range(4):
                 vertex_buffer.extend(QUAD_VERTICES[i])

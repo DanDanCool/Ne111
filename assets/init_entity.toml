@@ -1,0 +1,5 @@
+name = "init_entity"
+type =  "blueprint"
+
+[components]
+script_component = [ "level_script", "delete_script" ]

@@ -7,7 +7,7 @@ class physics_module(module):
     def __init__(self):
         super().__init__()
 
-    def update(ts):
+    def update(self, ts):
         ecs = game.get_ecs()
 
         bodies = {}

@@ -31,3 +31,6 @@ class delete_script(script):
     def update(self, entity, ts):
         ecs = game.get_ecs()
         ecs.entity_destroy(entity.e_id)
+
+def attack_callback(self, other):
+    # TODO: attack the other enemy here

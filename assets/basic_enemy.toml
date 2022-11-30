@@ -1,0 +1,7 @@
+name = "basic_enemy"
+type = "blueprint"
+
+[components]
+sprite_component = { color = [ 1, 0, 0, 1 ] }
+dynamic_body = { collision_callback = "attack_callback" }
+script_component = [ "random_move_script" ]

@@ -1,6 +1,6 @@
 name = "init"
-script = "test_script"
+type = "scene"
 
 entities = [
-	[ { component = "script_component", script = "level_script" } ],
+	"init_entity"
 ]

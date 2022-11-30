@@ -173,6 +173,8 @@ class component_system:
         if bitset in self.group_id:
             self.group_add(bitset, e)
 
+        item.component_callback(entity(e, self))
+
     def component_has(self, name, e):
         assert name in self.pool_id
         bitset = self.entity_bitset[e.identity()]

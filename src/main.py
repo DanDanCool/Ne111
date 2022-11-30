@@ -1,12 +1,8 @@
-import time
+import game
 
 def main():
-    lasttime = time.perf_counter_ns()
-    while game.run():
-        time = time.perf_counter_ns()
-        dt = time - lasttime
-        lasttime = time
-        game.update(dt)
+    g = game.game()
+    g.run()
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,6 @@
+name = "init"
+script = "test_script"
+
+entities = [
+	[ { component = "script_component", script = "level_script" } ],
+]

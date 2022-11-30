@@ -1,7 +1,12 @@
-class script_module(game_module):
-    def __init__(self, game):
-        super(self, game)
-        self.scripts = []
+import module
+import game
+
+class script_module(module.module):
+    def __init__(self):
+        super().__init__()
 
     def update(self, ts):
-        # go through all scirpt components here and update
+        ecs = game.get_ecs()
+
+        for entity, script in ecs.view("script_component"):
+            script.update(entity, ts)

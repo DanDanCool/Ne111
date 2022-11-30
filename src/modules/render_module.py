@@ -1,60 +1,20 @@
 import module
+import tomllib
 import pygame
 import numpy
 from OpenGL.GL import *
-from OpenGL.GLU import *
-
-class render_data:
-    def __init__(self, name, res, access):
-        RENDER_NODE = 0
-        NAMED_RESOURCE = 1
-        BUFFER = 3
-        PIPELINE = 4
-
-        READ = 0
-        WRITE = 1
-        READ_WRITE = 2
-
-        self.name = name
-        self.resource_type = res
-        self.access = access
 
 # note to self: in future implementations, inputs, outputs, and transients should be defined in one function through
 # function calls to some builder like Unity's implementation. Allows for much faster graph builds as well as nicer API?
 # probably also a good idea to separate the render function and the registration functions for better modularity
-class render_node:
-    def __init__(self, name):
-        self.name = name
-
-    def execute(self, graph, in_params, out_params):
-        pass
-
-    def inputs(self):
-        desc = []
-        return desc
-
-    def outputs(self):
-        desc = []
-        return desc
-
-    def transients(self):
-        desc = []
-        return desc
-
-class _root_node(render_node):
-    def __init__(self):
-        super().__init__("root")
-
-    def execute(self, graph, in_params, out_params):
-        graph.clear_backbuffer()
-
-    def outputs(self):
-        desc = [ render_data("GLOBAL_BACKBUFFER", render_data.NAMED_RESOURCE, render_data.WRITE) ]
-        return desc
+def _root_pass(graph, pass_data):
+    graph.clear_global_buffers()
 
 class _graph_node:
-    def __init__(self, node):
-        self.node = node
+    def __init__(self, name, render_fn):
+        self.name = name
+        self.render_func = render_fn
+        self.pass_data = {}
         self.parents = []
         self.children = []
 
@@ -66,15 +26,18 @@ class _graph_node:
 
 class _graph:
     def __init__(self):
-        self.root = _graph_node(None, _root_node())
+        self.root = None
+        self.nodes = {}
 
-        self.unlinked_nodes = {}
+    def add_node(self, node):
+        self.nodes[render_node.name] = node
 
-    def add_node(self, render_node):
-        self.unlinked_nodes[render_node.name] = _graph_node(render_node)
+    def get_node(self, name):
+        return self.nodes[name]
 
     # for now we only use render_nodes to build the graph because I am running out of time
     def build(self):
+        return # graph should already be built
         unlinked_inputs = {}
         unlinked_outputs = {}
 
@@ -98,45 +61,63 @@ class _graph:
         passes = []
         nodes = [self.root]
         for n in nodes:
-            order.append(n.node)
+            order.append(n)
             nodes.extend(n.children)
 
         return passes
 
-class render_graph:
-    def __init__(self):
-        self.renderer = None
-        self.graph = _graph()
-        add_node(_leaf_node())
+class builder:
+    def __init__(self, graph, node):
+        self.render_graph = graph
+        self.node = node
 
-    def clear(self):
-        self.renderer.clear()
+    def add_dependency(self, name):
+        parent = self.render_graph.graph.get_node(name)
+        self.node.add_parent(parent)
+        parent.add_child(self.node)
+
+    def create_buffer(self, buf_type, size):
+        return self.render_graph.create_buffer(buf_type, size)
+
+class render_graph:
+    def __init__(self, renderer):
+        self.renderer = renderer
+        self.graph = _graph()
+
+        _, builder = add_pass("root", _root_pass)
+        self.graph.root = builder.node
+
+    def clear_global_buffers(self):
+        self.renderer.clear_global_buffers()
+
+    def add_pass(self, name, render_fn):
+        node = _graph_node(name, render_fn)
+        self.graph.add_node(node)
+        return node.pass_data, builder(self.graph, node)
 
     def add_node(self, node):
         self.graph.add_node(node)
 
-    def execute(self, renderer):
-        self.renderer = renderer
+    def execute(self):
         self.graph.build()
         passes = self.graph.traverse()
         for p in passes:
-            in_params = {}
-            out_params = {}
+            p.render_func(self, p.pass_data)
 
-            # SUPER BAD, but whatever....
-            resources = p.transients()
-            for r in resources:
-                if r.resource_type == render_data.BUFFER:
-                    in_params[r.name] = self.renderer.get_buffer(r.name)
-                if r.resource_type == render_data.PIPELINE:
-                    in_params[r.name] = self.renderer.get_pipeline()
-            p.execute(self, in_params, out_params)
+    def create_buffer(self, buf_type, size):
+        return self.renderer.create_buffer(buf_type, size)
 
-    def buffer_data(self, buf, data, size):
-        self.renderer.buffer_data(buf, data, size)
+    def create_uniform(self, name, utype, value):
+        return _uniform(name, utype, value)
 
-    def submit(self, pipeline, vb, ib, count):
-        self.renderer.submit(pipeline, vb, ib, count)
+    def buffer_data(self, buf, buf_type, data, size):
+        self.renderer.buffer_data(buf, buf_type, data, size)
+
+    def get_pipeline(self, name):
+        return self.renderer.get_pipeline(name)
+
+    def submit(self, pipeline, vb, ib, uniforms, count):
+        self.renderer.submit(pipeline, vb, ib, uniforms, count)
 
     def get_hwinfo(self):
         return renderer.get_hwinfo()
@@ -145,6 +126,13 @@ class _pipeline:
     def __init__(self):
         self.program = 0
         self.va = 0
+        self.layout = []
+
+class _uniform:
+    def __init__(self, name, utype, value):
+        self.name = name
+        self.utype = utype
+        self.value = value
 
 class render_module(module.module):
     def __init__(self):
@@ -153,36 +141,6 @@ class render_module(module.module):
         pygame.init()
         pygame.display.set_mode((640, 480), pygame.OPENGL | pygame.DOUBLEBUF, vsync = 1)
         self.render_graph = render_graph()
-
-        # PLEASE DON'T HARD CODE... reminder #564
-        self.vertex_buffer = 0
-        self.index_buffer = 0
-        self.pipeline = _pipeline()
-
-        glCreateBuffers(1, [self.vertex_buffer])
-        glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer)
-        glBufferData(GL_ARRAY_BUFFER, 6 * 4 * 100000, None, GL_DYNAMIC_DRAW)
-
-        glCreateBuffers(1, [self.index_buffer])
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.index_buffer)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * 6 * 100000, None, GL_DYNAMIC_DRAW)
-
-        glCreateVertexArrays(1, [self.pipeline.va])
-        glBindVertexArray(self.pipeline.va)
-        self.pipeline.program = glCreateProgram()
-
-        vs = create_shader("../assets/sprite_vert.glsl", GL_VERTEX_SHADER)
-        fs = create_shader("../assets/sprite_frag.glsl", GL_FRAGMENT_SHADER)
-
-        glAttachShader(self.pipeline.program, vs)
-        glAttachShader(self.pipeline.program, fs)
-        glLinkProgram(self.pipeline.program)
-
-        glDetachShader(self.pipeline.program, vs)
-        glDetachShader(self.pipeline.program, fs)
-
-        glDeleteShader(vs)
-        glDeleteShader(fs)
 
     # pygame cleanup here
     def __del__(self):
@@ -211,7 +169,7 @@ class render_module(module.module):
         pass
 
     def render(self, graph):
-        graph.execute(self)
+        graph.execute()
         pygame.display.flip()
 
     def update(self, ts):
@@ -221,42 +179,101 @@ class render_module(module.module):
     def get_render_graph(self):
         return self.render_graph
 
-    def get_pipeline(self):
-        return self.pipeline
+    def create_buffer(self, buf_type, size):
+        if buf_type == "vertex":
+            buffer = 0
+            glCreateBuffers(1, [buffer])
+            glBindBuffer(GL_ARRAY_BUFFER, buffer)
+            glBufferData(GL_ARRAY_BUFFER, size, None, GL_DYNAMIC_DRAW)
+            return buffer
 
-    def get_buffer(self, name):
-        if name == "vb":
-            return self.vb
-        if name == "ib":
-            return self.ib
+        if buf_type == "index":
+            buffer = 0
+            glCreateBuffers(1, [buffer])
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer)
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, None, GL_DYNAMIC_DRAW)
+            return buffer
 
-    def buffer_data(self, buf, data, size):
+    def get_pipeline(self, name):
+        if name in self.pipelines:
+            return self.pipelines[name]
+        else:
+            return create_pipeline(name)
+
+    def load_pipeline(self, name):
+        data = None
+        with open("../assets/" + name + ".toml") as f:
+            data = tomllib.load(f)
+        return data
+
+    def create_pipeline(self, name):
+        pipeline_info = load_pipeline(name)
+        pipeline = _pipeline()
+
+        glCreateVertexArrays(1, [pipeline.va])
+        glBindVertexArray(pipeline.va)
+        pipeline.layout = pipeline_info["layout"]
+
+        self.pipeline.program = glCreateProgram()
+
+        vs = create_shader("../assets/" + pipeline_info["vertex_shader"] + ".glsl", GL_VERTEX_SHADER)
+        fs = create_shader("../assets/" + pipeline_info["fragment_shader"] + ".glsl", GL_FRAGMENT_SHADER)
+
+        glAttachShader(pipeline.program, vs)
+        glAttachShader(pipeline.program, fs)
+        glLinkProgram(pipeline.program)
+
+        glDetachShader(pipeline.program, vs)
+        glDetachShader(pipeline.program, fs)
+
+        glDeleteShader(vs)
+        glDeleteShader(fs)
+
+        self.pipelines[name] = pipeline
+
+    def bind_pipeline(self, pipeline):
+        stride = 0
+        for attribute in pipeline.layout:
+            stride += 4 * attribute["count"] # this is hardcoded to assume 4 bytes
+
+        offset = 0
+        for i in range(len(pipeline.layout)):
+            attribute = pipeline.layout[i]
+            gltype = 0
+            if attribute["type"] == "float":
+                gltype = GL_FLOAT
+
+            glEnableVertexAttribArray(i)
+            glVertexAttribPointer(0, 2, gltype, 0, stride, offset)
+            offset += 4 * attribute["count"]
+
+    def bind_uniforms(self, pipeline, uniforms):
+        for u in uniforms:
+            location = glGetUniformLocation(pipeline.program, u.name)
+            if u.type == "mat4fv":
+                glUniformMatrix4fv(location, 1, 0, u.value)
+
+    def buffer_data(self, buf, buf_type, data, size):
         # extremely bad
-        if data.dtype == float:
+        if buf_type == "vertex":
             glBindBuffer(GL_ARRAY_BUFFER, buf)
             glBufferSubData(GL_ARRAY_BUFFER, 0, size, data)
             glBindBuffer(GL_ARRAY_BUFFER, 0)
-        if data.dtype == numpy.uint32:
+        if buf_type == "index":
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buf)
             glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size, data)
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
     # time running out, hard coding, etc, etc....
-    def submit(self, pipeline, vb, ib, count):
-        proj = glOrtho(-16, 16, -8, 8, -1, 1)
-
+    def submit(self, pipeline, vb, ib, uniforms, count):
         glBindVertexArray(pipeline.va)
         glBindBuffer(GL_ARRAY_BUFFER, vb)
-        glEnableVertexAttribArray(0)
-        glVertexAttribPointer(0, 2, GL_FLOAT, 0, 6 * 4, 0)
-        glEnableVertexAttribArray(1)
-        glVertexAttribPointer(0, 4, GL_FLOAT, 0, 6 * 4, 2 * 4)
+        bind_pipeline(pipeline)
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib)
         glUseProgram(pipeline.program)
 
-        location = glGetUniformLocation(pipeline.program, "u_proj")
-        glUniformMatrix4fv(location, 1, 0, proj)
+        bind_uniforms(pipeline, uniforms)
 
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0)
 

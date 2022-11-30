@@ -2,7 +2,9 @@ import module
 import tomllib
 import game
 import game.components
+import game.
 import ecs
+import render_module
 
 class scene_module(module):
     def __init__(self):
@@ -19,11 +21,22 @@ class scene_module(module):
         ecs.group_create("sprite_dynamic", game.components.sprite_dynamic)
         ecs.group_create("sprite_static", game.components.sprite_static)
 
+        graph = render_module.get_module().get_render_graph()
+        pass_data, builder = graph.add_pass("sprite", render_func)
+        builder.add_dependency("root")
+
+        # 6 floats per vertex * 4 vertices * 4 bytes * 100 thousand quads
+        pass_data["vertex_buffer"] = builder.create_buffer("vertex", 6 * 4 * 4 * 100000)
+
+        # 6 vertices per quad (two triangles) * 4 bytes * 100 thousand quads
+        pass_data["index_buffer"] = builder.create_buffer("index", 6 * 4 * 100000)
+
+        pass_data["projection"] = builder.create_uniform("u_proj", "mat4fv", 0)
+
     def load_file(self, name):
         data = None
-        with open("../assets/" + name) as f:
+        with open("../assets/" + name + ".toml") as f:
             data = tomllib.load(f)
-
         return data
 
     # this is unfortunately hard coded
@@ -66,7 +79,7 @@ class scene_module(module):
         scene = load_file("init.toml")
 
         for e in scene[entities]:
-            blueprint = load_file(e + ".toml")
+            blueprint = load_file(e)
             create_entity(blueprint)
 
         self.scene_loaded = True

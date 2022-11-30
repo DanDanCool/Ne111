@@ -1,12 +1,9 @@
 from modules.render_module import *
+from OpenGL.GLU import *
 import game
 import numpy
 
-class sprite_node(render_node):
-    def __init__(self, name):
-        super().__init__(name)
-
-    def execute(self, graph, in_params, out_params):
+def sprite_pass(graph, pass_data):
         QUAD_VERTICES = [ [ -0.5, -0.5 ],
                           [ +0.5, -0.5 ],
                           [ +0.5, +0.5 ],
@@ -15,12 +12,10 @@ class sprite_node(render_node):
         TEX_COORDS = [ [ 0.0, 0.0 ], [ 1.0, 0.0 ], [ 1.0, 1.0 ], [ 0.0, 1.0 ] ]
 
         ecs = game.get_ecs()
-        hwinfo = graph.get_hwinfo()
-        vertex_buffer = numpy.array()
+        vertex_buffer = []
         index_buffer = []
         offset = 0
-        for _, components in ecs.view("sprite_component"):
-            sprite, physics = components
+        for _, sprite in ecs.view("sprite_component"):
             for i in range(4):
                 vertex_buffer.extend(QUAD_VERTICES[i])
                 vertex_buffer.extend(sprite.color)
@@ -32,20 +27,12 @@ class sprite_node(render_node):
         index32i = numpy.array(index_buffer, numpy.uint32)
 
         # synchronous buffer upload, would be interesting to come up with more parallel method
-        graph.buffer_data(in_params["vb"], vertex32f, vertex32f.size)
-        graph.buffer_data(in_params["ib"], index32i, index32i.size)
+        graph.buffer_data(pass_data["vertex_buffer"], "vertex", vertex32f, vertex32f.size)
+        graph.buffer_data(pass_data["index_buffer"], "index", index32i, index32i.size)
+
+        projection = pass_data["projection"]
+        projection.value = glOrtho(-16, 16, -8, 8, -1, 1)
 
         # pipeline is also hardcoded to save on time
-        graph.submit(in_params["pipeline"], in_params["vb"], in_params["ib"], index32i.size)
-
-    def inputs(self):
-        desc = [ render_data("root", render_data.RENDER_NODE, render_data.READ_WRITE) ]
-        return desc
-
-    def transients(self):
-        # in the interset of saving time we hardcode these buffers to be pretty massive
-        desc = [ render_data("vb", render_data.BUFFER, render_data.WRITE),
-                render_data("ib", render_data.BUFFER, render_data.WRITE),
-                render_data("pipeline"), render_data.PIPELINE, render_data.READ]
-        return desc
-
+        graph.submit(graph.get_pipeline("sprite_pipeline"), pass_data["vertex_buffer"], pass_data["index_buffer"],
+                     [projection], index32i.size)

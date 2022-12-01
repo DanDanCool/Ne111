@@ -42,14 +42,14 @@ class script_component(component):
 class dynamic_body(component):
     def __init__(self):
         super().__init__()
-        self.position = ( 0, 0 )
-        self.delta_position = ( 0, 0 )
+        self.position = [ 0, 0 ]
+        self.delta_position = [ 0, 0 ]
         self.collision_callback = None
 
 class static_body(component):
     def __init__(self):
         super().__init__()
-        self.position = ( 0, 0 )
+        self.position = [ 0, 0 ]
         self.collision_callback = None
 
 class sprite_dynamic(group_component):
@@ -59,7 +59,7 @@ class sprite_dynamic(group_component):
         self.physics = desc["dynamic_body"]
 
     # seems hardcoded but we would probably want to take the unique hash of the class instead
-    def pools(self):
+    def pools():
         return [ "sprite_component", "dynamic_body" ]
 
     def components(self):
@@ -72,8 +72,8 @@ class sprite_static(group_component):
         self.physics = desc["static_body"]
 
     # seems hardcoded but we would probably want to take the unique hash of the class instead
-    def pools(self):
-        return [ "sprite_component", "statid_body" ]
+    def pools():
+        return [ "sprite_component", "static_body" ]
 
     def components(self):
         return (self.sprite, self.physics)

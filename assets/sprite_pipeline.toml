@@ -4,7 +4,6 @@ type = "pipeline"
 vertex_shader = "sprite_vert"
 fragment_shader = "sprite_frag"
 
-layout = [
-	{ type = "float", count = 2 }
-	{ type = "float", count = 4 }
-]
+[layout]
+"a_pos" = { type = "float", count = 2 }
+"a_color"= { type = "float", count = 4 }

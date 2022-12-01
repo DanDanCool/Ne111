@@ -1,7 +1,8 @@
-import engine
+import global_vars
 
 def main():
-    g = engine.engine()
+    g = global_vars.get_engine()
+    g.load_modules()
     g.run()
 
 if __name__ == "__main__":

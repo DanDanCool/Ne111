@@ -2,7 +2,7 @@ class module:
     def __init__(self):
         pass
 
-    def update(ts):
+    def update(self, ts):
         pass
 
 def get_module():

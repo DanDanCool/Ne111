@@ -3,15 +3,15 @@ NULL_ENTITY = -1
 
 class entity_id:
     def __init__(self, identity, version):
-        assert identity == int
-        assert version == int
+        assert type(identity) == int
+        assert type(version) == int
         self.identity = identity
         self.version = version
 
 # note: this is a convenience wrapper class, this does not actually contain data
 class entity:
     def __init__(self, e_id, system):
-        assert e_id == entity_id
+        assert type(e_id) == entity_id
         self.e_id = e_id
         self.system = system
 
@@ -34,16 +34,16 @@ class pool:
     def __init__(self, name, descriptor):
         self.name = name
         self.desc = descriptor
-        self.sparse = []
-        self.dense = [NULL_ENTITY] * MAX_ENTITIES
+        self.sparse = [NULL_ENTITY] * MAX_ENTITIES
+        self.dense = []
         self.components = []
 
     def add(self, e, item):
         assert type(e) == int
         assert type(item) == self.desc
-        assert self.dense[e] == NULL_ENTITY
-        self.dense[e] = len(self.sparse)
-        self.sparse.append(e)
+        assert self.sparse[e] == NULL_ENTITY
+        self.sparse[e] = len(self.dense)
+        self.dense.append(e)
         self.components.append(item)
 
     def get(self, e):
@@ -72,9 +72,18 @@ class view_iterator:
     def __next__(self):
         if not self.idx < len(self.pool.dense):
             raise StopIteration
-        i = self.pool.dense[self.idx]
+        e = self.pool.dense[self.idx]
+        i = self.idx
         self.idx += 1
-        return entity(self.system.entities[i], self.system), self.pool.components[i]
+        return entity(self.system.entities[e], self.system), self.pool.components[i]
+
+class _view:
+    def __init__(self, system, pool):
+        self.system = system
+        self.pool = pool
+
+    def __iter__(self):
+        return view_iterator(self.system, self.pool)
 
 class group_iterator:
     def __init__(self, system, group):
@@ -85,14 +94,23 @@ class group_iterator:
     def __next__(self):
         if not self.idx < len(self.group.dense):
             raise StopIteration
-        i = self.group.dense[self.idx]
+        e = self.group.dense[self.idx]
+        i = self.idx
         self.idx += 1
-        return entity(self.system.entities[i], self.system), self.group.components[i].components()
+        return entity(self.system.entities[e], self.system), self.group.components[i].components()
+
+class _group:
+    def __init__(self, system, group):
+        self.system = system
+        self.group = group
+
+    def __iter__(self):
+        return group_iterator(self.system, self.group)
 
 class component_system:
     def __init__(self):
         self.entities = []
-        self.next_entity = -1
+        self.next_entity = NULL_ENTITY
         self.entity_bitset = [0] * MAX_ENTITIES
         self.pools = []
         self.pool_id = {}
@@ -100,7 +118,7 @@ class component_system:
         self.group_id = {}
 
     def entity_create(self):
-        if not self.next_entity == -1:
+        if not self.next_entity == NULL_ENTITY:
             temp_id = self.next_entity
             e_id = self.entities[temp_id]
             self.next_entity = e_id.identity
@@ -113,14 +131,14 @@ class component_system:
         return e_id
 
     def entity_destroy(self, e):
-        e_id = self.entities[e.identity()]
+        e_id = self.entities[e.identity]
 
         p_id = 0
         bitset = self.entity_bitset[e_id.identity]
         while bitset:
             if (bitset & (1 << p_id)):
-                name = self.pool_id[p_id]
-                self.component_remove(name, e_id.identity)
+                name = self.pools[p_id].name
+                self.component_remove(name, e_id)
                 bitset = bitset ^ (1 << p_id)
             p_id += 1
 
@@ -132,7 +150,7 @@ class component_system:
     def group(self, name):
         assert name in self.group_id
         g_id = self.group_id[name]
-        return group_iterator(self.groups[g_id])
+        return _group(self, self.groups[g_id])
 
     # descriptor is a special component class that contains pointers to the desired group of components
     # constructor takes as input a dictionary with keys corresponding to the component names, and the value
@@ -144,7 +162,7 @@ class component_system:
         bitset = 0
         for component in descriptor.pools():
             assert component in self.pool_id
-            p_id = self.pools_id[component]
+            p_id = self.pool_id[component]
             bitset = bitset | (1 << p_id)
         assert bitset not in self.group_id
         g_id = len(self.groups)
@@ -155,21 +173,21 @@ class component_system:
     def view(self, name):
         assert name in self.pool_id
         p_id = self.pool_id[name]
-        return view_iterator(self.pools[p_id])
+        return _view(self, self.pools[p_id])
 
     def register(self, name, descriptor):
         assert name not in self.pool_id
-        self.pools_id[name] = len(self.pools)
+        self.pool_id[name] = len(self.pools)
         self.pools.append(pool(name, descriptor))
 
     def component_add(self, name, e, item):
         assert name in self.pool_id
         p_id = self.pool_id[name]
         pool = self.pools[p_id]
-        pool.add(e.identity(), item)
-        bitset = self.entity_bitset[e.identity()]
+        pool.add(e.identity, item)
+        bitset = self.entity_bitset[e.identity]
         bitset = bitset | (1 << p_id)
-        self.entity_bitset[e.identity()] = bitset
+        self.entity_bitset[e.identity] = bitset
         if bitset in self.group_id:
             self.group_add(bitset, e)
 
@@ -177,7 +195,7 @@ class component_system:
 
     def component_has(self, name, e):
         assert name in self.pool_id
-        bitset = self.entity_bitset[e.identity()]
+        bitset = self.entity_bitset[e.identity]
         p_id = self.pools_id[name]
         return (bitset & (1 << p_id)) == (1 << p_id)
 
@@ -188,14 +206,14 @@ class component_system:
 
     def component_remove(self, name, e):
         assert name in self.pool_id
-        bitset = self.entity_bitset[e.identity()]
+        bitset = self.entity_bitset[e.identity]
         if bitset in self.group_id:
             group_remove(bitset, e)
         p_id = self.pool_id[name]
         pool = self.pools[p_id]
-        pool.remove(e.identity())
+        pool.remove(e.identity)
         bitset = bitset ^ (1 << p_id)
-        self.entity_bitset[e.identity()] = bitset
+        self.entity_bitset[e.identity] = bitset
 
     def group_add(self, bitset, e):
         p_id = 0

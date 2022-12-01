@@ -1,5 +1,5 @@
 import module
-import engine
+import global_vars
 
 # this physics system is really limited but also very simple, each object can only occupy integer positions
 # mkovement is discrete and when collisions occur the energy is lost
@@ -8,7 +8,7 @@ class physics_module(module.module):
         super().__init__()
 
     def update(self, ts):
-        ecs = engine.get_ecs()
+        ecs = global_vars.get_ecs()
 
         bodies = {}
         for e, body in ecs.view("static_body"):
@@ -18,7 +18,7 @@ class physics_module(module.module):
         for e, group in ecs.group("sprite_dynamic"):
             sprite, body = group
             new_pos = (body.position[0] + body.delta_position[0], body.position[1] + body.delta_position[1])
-            body.delta_position = (0, 0)
+            body.delta_position = [0, 0]
             if new_pos in bodies:
                 other = bodies[new_pos]
                 body.collision_callback(e, other[0])

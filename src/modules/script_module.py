@@ -1,12 +1,12 @@
 import module
-import engine
+import global_vars
 
 class script_module(module.module):
     def __init__(self):
         super().__init__()
 
     def update(self, ts):
-        ecs = engine.get_ecs()
+        ecs = global_vars.get_ecs()
 
         for entity, script in ecs.view("script_component"):
             script.update(entity, ts)

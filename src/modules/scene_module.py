@@ -1,19 +1,19 @@
 import module
-import tomllib
-import engine
+import toml
+import global_vars
 import game.components
+import game.scripts
 import game.render_nodes
 import ecs
-import render_module
+from . import render_module
 
-class scene_module(module):
+class scene_module(module.module):
     def __init__(self):
         self.scene_loaded = False
 
         # register ECS components here because I have no better place to put it
-        ecs = engine.get_ecs()
+        ecs = global_vars.get_ecs()
         ecs.register("sprite_component", game.components.sprite_component)
-        ecs.register("physics_component", game.components.physics_component)
         ecs.register("script_component", game.components.script_component)
         ecs.register("dynamic_body", game.components.dynamic_body)
         ecs.register("static_body", game.components.static_body)
@@ -21,7 +21,7 @@ class scene_module(module):
         ecs.group_create("sprite_dynamic", game.components.sprite_dynamic)
         ecs.group_create("sprite_static", game.components.sprite_static)
 
-        graph = render_module.get_module().get_render_graph()
+        graph = global_vars.get_module("render_module").get_render_graph()
         pass_data, builder = graph.add_pass("sprite", game.render_nodes.sprite_pass)
         builder.add_dependency("root")
 
@@ -36,32 +36,32 @@ class scene_module(module):
     def load_file(self, name):
         data = None
         with open("../assets/" + name + ".toml") as f:
-            data = tomllib.load(f)
+            data = toml.load(f)
         return data
 
     # this is unfortunately hard coded
     # perhaps specifying the entire component body should be mandated so it can be directly passed into the constructor?
     def create_entity(self, blueprint):
-        ecs = engine.get_ecs()
-        entity = ecs.entity(ecs.entity_create(), ecs)
+        cs = global_vars.get_ecs()
+        entity = ecs.entity(cs.entity_create(), cs)
         components = blueprint["components"]
 
         if "script_component" in components:
             script_component = game.components.script_component()
             for script in components["script_component"]:
-                script_object = getattr(game.components, script)
-                script_component.add_script(script_object)
+                script_object = getattr(game.scripts, script)
+                script_component.add_script(script_object())
             entity.add("script_component", script_component)
 
         if "dynamic_body" in components:
             dynamic_body = game.components.dynamic_body()
-            callback = getattr(game.components, components["dynamic_body"]["collision_callback"])
+            callback = getattr(game.scripts, components["dynamic_body"]["collision_callback"])
             dynamic_body.collision_callback = callback
             entity.add("dynamic_body", dynamic_body)
 
         if "static_body" in components:
             static_body = game.components.static_body()
-            callback = getattr(game.components, components["static_body"]["collision_callback"])
+            callback = getattr(game.scripts, components["static_body"]["collision_callback"])
             static_body.collision_callback = callback
             entity.add("static_body", static_body)
 
@@ -72,14 +72,27 @@ class scene_module(module):
             entity.add("sprite_component", sprite_component)
 
     # we do scene loading here to guarantee that all modules are loaded
-    def update(ts):
+    def update(self, ts):
         if self.scene_loaded:
             return
 
-        scene = load_file("init.toml")
+        scene = self.load_file("init")
 
-        for e in scene[entities]:
-            blueprint = load_file(e)
-            create_entity(blueprint)
+        for e in scene["entities"]:
+            blueprint = self.load_file(e)
+            self.create_entity(blueprint)
+
+        cs = global_vars.get_ecs()
+        for i in range(10):
+            for j in range(10):
+                e = ecs.entity(cs.entity_create(), cs)
+                sprite = game.components.sprite_component()
+                sprite.position = [-i - 1, -j - 1]
+                sprite.color = [i / 10, i / 10, 1, 1]
+                e.add("sprite_component", sprite)
 
         self.scene_loaded = True
+
+def create_module():
+    mod = scene_module()
+    return mod

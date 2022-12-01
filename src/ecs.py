@@ -18,6 +18,9 @@ class entity:
     def add(self, name, item):
         self.system.component_add(name, self.e_id, item)
 
+    def has(self, name):
+        self.system.component_has(name, self.e_id)
+
     def get(self, name):
         return self.system.component_get(name, self.e_id)
 
@@ -195,7 +198,7 @@ class component_system:
     def component_has(self, name, e):
         assert name in self.pool_id
         bitset = self.entity_bitset[e.identity]
-        p_id = self.pools_id[name]
+        p_id = self.pool_id[name]
         return (bitset & (1 << p_id)) == (1 << p_id)
 
     def component_get(self, name, e):
@@ -227,6 +230,9 @@ class component_system:
 
         if not found:
             return
+        group = self.groups[self.group_id[bits]]
+        if group.sparse[e.identity] != NULL_ENTITY:
+            return
 
         p_id = 0
         components = {}
@@ -237,7 +243,6 @@ class component_system:
                 components[pool.name] = pool.get(e.identity)
                 temp = temp ^ (1 << p_id)
             p_id += 1
-        group = self.groups[self.group_id[bits]]
         group.add(e.identity, group.desc(components))
 
     def group_remove(self, bitset, e):

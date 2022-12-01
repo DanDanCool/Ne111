@@ -36,20 +36,25 @@ class script_component(component):
         for script in self.scripts:
             script.update(entity, ts)
 
+class stats_component(component):
+    def __init__(self):
+        self.health = 3
+        self.attack = 1
+
 # there is some data duplication here, but regularly the physics engine would update the data for the matrix transforms
 # for simplicity we directly modify the sprite position
 # collsion callback: function object that takes in two entity objects: this and other
 class dynamic_body(component):
     def __init__(self):
         super().__init__()
-        self.position = [ 0, 0 ]
-        self.delta_position = [ 0, 0 ]
+        self.position = ( 0, 0 )
+        self.delta_position = ( 0, 0 )
         self.collision_callback = None
 
 class static_body(component):
     def __init__(self):
         super().__init__()
-        self.position = [ 0, 0 ]
+        self.position = ( 0, 0 )
         self.collision_callback = None
 
 class sprite_dynamic(group_component):

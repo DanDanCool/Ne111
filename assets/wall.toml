@@ -1,0 +1,5 @@
+name = "wall"
+type = "blueprint"
+[components]
+sprite_component = {color = [0.1,0.1,0.1,1.0]}
+static_body = {collision_callback = "empty_callback"}

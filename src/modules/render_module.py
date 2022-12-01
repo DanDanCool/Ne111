@@ -120,7 +120,7 @@ class render_graph:
         self.renderer.submit(pipeline, vb, ib, uniforms, count)
 
     def get_hwinfo(self):
-        return renderer.get_hwinfo()
+        return self.renderer.get_hwinfo()
 
 class _pipeline:
     def __init__(self):

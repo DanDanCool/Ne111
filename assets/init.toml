@@ -2,6 +2,8 @@ name = "init"
 type = "scene"
 
 entities = [
+	"player",
 	"init_entity",
-	"basic_enemy"
+	"basic_enemy",
+	"wall"
 ]

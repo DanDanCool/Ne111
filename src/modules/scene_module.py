@@ -13,6 +13,7 @@ class scene_module(module.module):
 
         # register ECS components here because I have no better place to put it
         ecs = global_vars.get_ecs()
+        ecs.register("stats_component", game.components.stats_component)
         ecs.register("sprite_component", game.components.sprite_component)
         ecs.register("script_component", game.components.script_component)
         ecs.register("dynamic_body", game.components.dynamic_body)
@@ -55,6 +56,8 @@ class scene_module(module.module):
 
         if "dynamic_body" in components:
             dynamic_body = game.components.dynamic_body()
+            position = components["dynamic_body"]["position"]
+            dynamic_body.position = position
             callback = getattr(game.scripts, components["dynamic_body"]["collision_callback"])
             dynamic_body.collision_callback = callback
             entity.add("dynamic_body", dynamic_body)
@@ -71,6 +74,10 @@ class scene_module(module.module):
             sprite_component.color = color
             entity.add("sprite_component", sprite_component)
 
+        if "stats_component" in components:
+            stats_component = game.components.stats_component()
+            entity.add("stats_component", stats_component)
+
     # we do scene loading here to guarantee that all modules are loaded
     def update(self, ts):
         if self.scene_loaded:
@@ -82,15 +89,7 @@ class scene_module(module.module):
             blueprint = self.load_file(e)
             self.create_entity(blueprint)
 
-        cs = global_vars.get_ecs()
-        for i in range(10):
-            for j in range(10):
-                e = ecs.entity(cs.entity_create(), cs)
-                sprite = game.components.sprite_component()
-                sprite.position = [-i - 1, -j - 1]
-                sprite.color = [i / 10, i / 10, 1, 1]
-                e.add("sprite_component", sprite)
-
+        
         self.scene_loaded = True
 
 def create_module():

@@ -10,3 +10,7 @@ class script_module(module.module):
 
         for entity, script in ecs.view("script_component"):
             script.update(entity, ts)
+
+def create_module():
+    mod = script_module()
+    return mod

@@ -1,7 +1,7 @@
-import game
+import engine
 
 def main():
-    g = game.game()
+    g = engine.engine()
     g.run()
 
 if __name__ == "__main__":

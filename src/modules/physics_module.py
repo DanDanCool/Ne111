@@ -1,14 +1,14 @@
 import module
-import game
+import engine
 
 # this physics system is really limited but also very simple, each object can only occupy integer positions
 # mkovement is discrete and when collisions occur the energy is lost
-class physics_module(module):
+class physics_module(module.module):
     def __init__(self):
         super().__init__()
 
     def update(self, ts):
-        ecs = game.get_ecs()
+        ecs = engine.get_ecs()
 
         bodies = {}
         for e, body in ecs.view("static_body"):
@@ -27,3 +27,7 @@ class physics_module(module):
                 body.position = new_pos
                 sprite.position = new_pos
                 bodies[new_pos] = (e, body)
+
+def create_module():
+    mod = physics_module()
+    return mod

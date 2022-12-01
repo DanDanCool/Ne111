@@ -1,19 +1,20 @@
 import time
 import importlib
 import pathlib
+import ecs
 
-class game:
+class engine:
     def __init__(self):
-        g_game = self
+        g_engine = self
         self.b_run = True;
-        self.component_system
+        self.component_system = ecs.component_system()
 
         self.lib = []
         self.modules = []
 
         path = pathlib.Path('modules')
         for p in path.iterdir():
-            m = importlib.import_module(p.name)
+            m = importlib.import_module('modules.' + p.stem)
             self.lib.append(m)
             self.modules.append(m.create_module())
 
@@ -36,7 +37,7 @@ class game:
     def get_ecs(self):
         return self.component_system
 
-def get_game():
+def get_engine():
     return game.g_game
 
 def get_ecs():

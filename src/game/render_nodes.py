@@ -1,6 +1,6 @@
 from modules.render_module import *
 from OpenGL.GLU import *
-import game
+import engine
 import numpy
 
 def sprite_pass(graph, pass_data):
@@ -11,7 +11,7 @@ def sprite_pass(graph, pass_data):
 
         TEX_COORDS = [ [ 0.0, 0.0 ], [ 1.0, 0.0 ], [ 1.0, 1.0 ], [ 0.0, 1.0 ] ]
 
-        ecs = game.get_ecs()
+        ecs = engine.get_ecs()
         vertex_buffer = []
         index_buffer = []
         offset = 0

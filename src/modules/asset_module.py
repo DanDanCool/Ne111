@@ -1,3 +1,5 @@
+import module
+
 class texture_resource:
     def __init__(self):
         pass
@@ -18,7 +20,7 @@ class atlas_resource:
     def __init__(self):
         pass
 
-class asset_manager:
+class asset_module(module.module):
     def __init__(self):
         pass
 
@@ -48,3 +50,7 @@ class asset_manager:
 
     def get_sound(self, name):
         pass
+
+def create_module():
+    mod = asset_module()
+    return mod

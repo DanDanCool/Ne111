@@ -1,8 +1,8 @@
 import module
 import tomllib
-import game
+import engine
 import game.components
-import game.
+import game.render_nodes
 import ecs
 import render_module
 
@@ -11,7 +11,7 @@ class scene_module(module):
         self.scene_loaded = False
 
         # register ECS components here because I have no better place to put it
-        ecs = game.get_ecs()
+        ecs = engine.get_ecs()
         ecs.register("sprite_component", game.components.sprite_component)
         ecs.register("physics_component", game.components.physics_component)
         ecs.register("script_component", game.components.script_component)
@@ -22,7 +22,7 @@ class scene_module(module):
         ecs.group_create("sprite_static", game.components.sprite_static)
 
         graph = render_module.get_module().get_render_graph()
-        pass_data, builder = graph.add_pass("sprite", render_func)
+        pass_data, builder = graph.add_pass("sprite", game.render_nodes.sprite_pass)
         builder.add_dependency("root")
 
         # 6 floats per vertex * 4 vertices * 4 bytes * 100 thousand quads
@@ -42,7 +42,7 @@ class scene_module(module):
     # this is unfortunately hard coded
     # perhaps specifying the entire component body should be mandated so it can be directly passed into the constructor?
     def create_entity(self, blueprint):
-        ecs = game.get_ecs()
+        ecs = engine.get_ecs()
         entity = ecs.entity(ecs.entity_create(), ecs)
         components = blueprint["components"]
 

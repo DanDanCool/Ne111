@@ -107,10 +107,10 @@ class component_system:
             e_id.identity = temp_id
             return entity(e_id, self)
 
-         e_id = entity_id(len(self.entities), 0)
-         self.entities.append(e_id)
-         self.entity_bitset.append(0)
-         return e_id
+        e_id = entity_id(len(self.entities), 0)
+        self.entities.append(e_id)
+        self.entity_bitset.append(0)
+        return e_id
 
     def entity_destroy(self, e):
         e_id = self.entities[e.identity()]

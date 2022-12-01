@@ -1,6 +1,6 @@
 # script super class, all scripts inherit from this
 import level_generation
-import game
+import engine
 
 class script:
     def __init__(self):
@@ -29,7 +29,7 @@ class delete_script(script):
         super().__init__()
 
     def update(self, entity, ts):
-        ecs = game.get_ecs()
+        ecs = engine.get_ecs()
         ecs.entity_destroy(entity.e_id)
 
 def attack_callback(self, other):

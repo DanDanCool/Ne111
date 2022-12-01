@@ -48,12 +48,12 @@ class pool:
 
     def get(self, e):
         assert type(e) == int
-        assert not self.dense[e] == NULL_ENTITY
+        assert not self.sparse[e] == NULL_ENTITY
         return self.components[self.sparse[e]]
 
     def remove(self, e):
         assert type(e) == int
-        assert not self.dense[e] == NULL_ENTITY
+        assert not self.sparse[e] == NULL_ENTITY
         i = self.sparse[e]
         j = len(self.dense) - 1
         self.sparse[e] = NULL_ENTITY
@@ -188,8 +188,7 @@ class component_system:
         bitset = self.entity_bitset[e.identity]
         bitset = bitset | (1 << p_id)
         self.entity_bitset[e.identity] = bitset
-        if bitset in self.group_id:
-            self.group_add(bitset, e)
+        self.group_add(bitset, e)
 
         item.component_callback(entity(e, self))
 
@@ -208,7 +207,7 @@ class component_system:
         assert name in self.pool_id
         bitset = self.entity_bitset[e.identity]
         if bitset in self.group_id:
-            group_remove(bitset, e)
+            self.group_remove(bitset, e)
         p_id = self.pool_id[name]
         pool = self.pools[p_id]
         pool.remove(e.identity)
@@ -216,16 +215,30 @@ class component_system:
         self.entity_bitset[e.identity] = bitset
 
     def group_add(self, bitset, e):
+        found = False
+        bits = None
+        for b in self.group_id.keys():
+            if type(b) == str:
+                continue
+            if b & bitset == b:
+                found = True
+                bits = b
+                break
+
+        if not found:
+            return
+
         p_id = 0
         components = {}
-        while bitset:
-            if (bitset & (1 << p_id)):
+        temp = bits
+        while temp:
+            if (temp & (1 << p_id)):
                 pool = self.pools[p_id]
-                components[pool.name] = pool.get(e.identity())
-                bitset = bitset ^ (1 << p_id)
+                components[pool.name] = pool.get(e.identity)
+                temp = temp ^ (1 << p_id)
             p_id += 1
-        group = self.groups[self.group_id[bitset]]
-        group.add(e.identity(), group.desc(components))
+        group = self.groups[self.group_id[bits]]
+        group.add(e.identity, group.desc(components))
 
     def group_remove(self, bitset, e):
         group = self.groups[self.group_id[bitset]]

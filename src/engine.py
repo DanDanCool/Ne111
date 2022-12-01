@@ -35,10 +35,12 @@ class engine:
         last_time = time.perf_counter_ns()
         while (self.b_run):
             cur_time = time.perf_counter_ns()
-            dt = cur_time - last_time
+            dt = (cur_time - last_time) / (10**6) # ms
 
             for _, m in self.modules.items():
                 m.update(dt)
+
+            last_time = cur_time
 
     def should_run(self, run):
         self.b_run = run

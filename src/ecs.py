@@ -202,7 +202,7 @@ class component_system:
     def component_get(self, name, e):
         assert name in self.pool_id
         pool = self.pools[self.pool_id[name]]
-        return pool.get(e.identity())
+        return pool.get(e.identity)
 
     def component_remove(self, name, e):
         assert name in self.pool_id

@@ -1,6 +1,7 @@
 # script super class, all scripts inherit from this
 #import level_generation
 import global_vars
+import random
 
 class script:
     def __init__(self):
@@ -39,7 +40,10 @@ class random_move_script(script):
         super().__init__()
 
     def update(self, entity, ts):
-        pass
+        x = random.randint(-1,1)
+        y = random.randint(-1,1)
+        dynamicbody = entity.get('dynamic_body')
+        dynamicbody.delta_position = [x,y]
 
 def attack_callback(self, other):
     # TODO: attack the other enemy here

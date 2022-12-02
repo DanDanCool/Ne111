@@ -41,6 +41,7 @@ class _graph:
         unlinked_inputs = {}
         unlinked_outputs = {}
 
+        # old code that was supposed to look through dependencies to build the graph
         for name, node in self.unlinked_nodes:
             render_node = node.node
             for i in render_node.inputs():
@@ -66,11 +67,15 @@ class _graph:
 
         return passes
 
+# note to self: in future implementations should also require nodes to be registered every frame, ore require some sor
+# to registration function
+# this class helps define a render pass
 class builder:
     def __init__(self, graph, node):
         self.render_graph = graph
         self.node = node
 
+    # add another node in the render graph as a dependency
     def add_dependency(self, name):
         parent = self.render_graph.graph.get_node(name)
         self.node.add_parent(parent)
@@ -82,6 +87,10 @@ class builder:
     def create_uniform(self, name, utype, value):
         return self.render_graph.create_uniform(name, utype, value)
 
+# the purpose of the render graph is to more easily modularize and define the order of render passes in a frame
+# some other benefits can include culling unneeded passes through graph traversal, as well as the sharing and managing
+# of gpu resources by the graph, which can be expensive to create
+# for low-level apis like vulkan, synchronization points and resource transitions can be done automatically
 class render_graph:
     def __init__(self, renderer):
         self.renderer = renderer
@@ -133,6 +142,9 @@ class _uniform:
         self.utype = utype
         self.value = value
 
+# pretty much just a convenience class around opengl
+# also does window creation and updates, this has to be done in the same class as the thread that creates the window
+# must also be the one that creates the opengl context, and the opengl context cannot be shared between threads
 class render_module(module.module):
     g_module = None
     def __init__(self):

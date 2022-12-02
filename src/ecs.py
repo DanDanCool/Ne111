@@ -1,6 +1,7 @@
 MAX_ENTITIES = 2**16
 NULL_ENTITY = -1
 
+# note on versions: since an id can be reused the version is also maintained to differentiate between ids
 class entity_id:
     def __init__(self, identity, version):
         assert type(identity) == int
@@ -33,6 +34,11 @@ class entity:
     def version(self):
         return self.ed_id.version
 
+# internal class for storing components
+# contains a sparse and dense array
+# the sparse array can be indexed with an id to check whether or not the entity contains the relevant component
+# the index will contain another index into the dense array which stores the component
+# this allows for efficient iteration, as well as fast lookup
 class pool:
     def __init__(self, name, descriptor):
         self.name = name
@@ -66,6 +72,7 @@ class pool:
         self.components[i] = self.components[j]
         return self.components.pop()
 
+# implements ranged base looping for views
 class view_iterator:
     def __init__(self, system, pool):
         self.system = system
@@ -80,6 +87,7 @@ class view_iterator:
         self.idx += 1
         return entity(self.system.entities[e], self.system), self.pool.components[i]
 
+# helper class for the view iterator
 class _view:
     def __init__(self, system, pool):
         self.system = system
@@ -88,6 +96,7 @@ class _view:
     def __iter__(self):
         return view_iterator(self.system, self.pool)
 
+# implements ranged base looping for groups
 class group_iterator:
     def __init__(self, system, group):
         self.system = system
@@ -102,6 +111,7 @@ class group_iterator:
         self.idx += 1
         return entity(self.system.entities[e], self.system), self.group.components[i].components()
 
+# helper class for the group iterator
 class _group:
     def __init__(self, system, group):
         self.system = system
@@ -110,10 +120,18 @@ class _group:
     def __iter__(self):
         return group_iterator(self.system, self.group)
 
+# a class is used to encapsulate data and behaviour
+# however to add additional attributes or behaviour to a class, it must be extended through inheritance or composition
+# a component system seeks to solve this problem by separating attributes and behaviour into modularized components
+# a system can be easily created through the composition of pre-defined attributes and behavirous, increasing code
+# reuse
+# additionally, systems can have attributes and behaviour dynamically added or removed
 class component_system:
     def __init__(self):
         self.entities = []
         self.next_entity = NULL_ENTITY
+        # all pools are associated with some integer, the bitset keeps track of which components an entity contains
+        # note: probalbly not worth the extra memory usage, also limited to 64 pools at most
         self.entity_bitset = [0] * MAX_ENTITIES
         self.pools = []
         self.pool_id = {}
@@ -121,6 +139,8 @@ class component_system:
         self.group_id = {}
 
     def entity_create(self):
+        # we store entities no longer in use instead of deleting them
+        # a linked list of these entities that are no longer in use is maintained internally, allowing them to be reused
         if not self.next_entity == NULL_ENTITY:
             temp_id = self.next_entity
             e_id = self.entities[temp_id]
@@ -136,6 +156,7 @@ class component_system:
     def entity_destroy(self, e):
         e_id = self.entities[e.identity]
 
+        # delete all associated components with the entity
         p_id = 0
         bitset = self.entity_bitset[e_id.identity]
         while bitset:
@@ -150,6 +171,8 @@ class component_system:
         e_id.identity = self.next_entity
         self.next_entity = temp_id
 
+    # groups are a special type of component pool that allows for the efficient iteration over entities with a desired
+    # set of components
     def group(self, name):
         assert name in self.group_id
         g_id = self.group_id[name]
@@ -173,11 +196,13 @@ class component_system:
         self.group_id[name] = g_id
         self.groups.append(pool(name, descriptor))
 
+    # views are used to iterate over a particular type of component
     def view(self, name):
         assert name in self.pool_id
         p_id = self.pool_id[name]
         return _view(self, self.pools[p_id])
 
+    # components need to be registered before use due to internal behaviour
     def register(self, name, descriptor):
         assert name not in self.pool_id
         self.pool_id[name] = len(self.pools)
@@ -193,6 +218,7 @@ class component_system:
         self.entity_bitset[e.identity] = bitset
         self.group_add(bitset, e)
 
+        # components can register a callback that will be called once they are added to an entity
         item.component_callback(entity(e, self))
 
     def component_has(self, name, e):
@@ -217,9 +243,11 @@ class component_system:
         bitset = bitset ^ (1 << p_id)
         self.entity_bitset[e.identity] = bitset
 
+    # internal function that checks if the entity should be added to a registered group
     def group_add(self, bitset, e):
         found = False
         bits = None
+        # find out if the entity should be added to a group
         for b in self.group_id.keys():
             if type(b) == str:
                 continue
@@ -232,11 +260,12 @@ class component_system:
             return
         group = self.groups[self.group_id[bits]]
         if group.sparse[e.identity] != NULL_ENTITY:
-            return
+            return # return if the entity is already part of a group, note: corner cases WILL occur
 
         p_id = 0
         components = {}
         temp = bits
+        # get all components to add
         while temp:
             if (temp & (1 << p_id)):
                 pool = self.pools[p_id]

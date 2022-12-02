@@ -7,6 +7,8 @@ import game.render_nodes
 import ecs
 from . import render_module
 
+# scene management done here
+# also functions as a pseudo game entry point, which is kind of bad and messy
 class scene_module(module.module):
     def __init__(self):
         self.scene_loaded = False

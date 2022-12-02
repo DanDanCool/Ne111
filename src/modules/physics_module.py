@@ -12,6 +12,8 @@ class physics_module(module.module):
         ecs = global_vars.get_ecs()
         self.elapsed_time += ts
 
+        # we use positions as keys so we can easily check whether or not there will be a collision
+        # note that this does mean order matters, and order is not necessarily stable, so some funky behaviour can occur
         bodies = {}
         for e, body in ecs.view("static_body"):
             bodies[body.position] = (e, body)
@@ -21,6 +23,7 @@ class physics_module(module.module):
             sprite, body = group
             new_pos = (body.position[0] + body.delta_position[0], body.position[1] + body.delta_position[1])
             body.delta_position = (0, 0)
+            # run callbacks every second, implemented because you would insteantly die when hitting an enemy otherwise
             if new_pos in bodies and self.elapsed_time >= 1000:
                 self.elapsed_time = 0
                 other = bodies[new_pos]

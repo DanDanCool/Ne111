@@ -11,6 +11,7 @@ class script:
     def update(self, entity, ts):
         pass
 
+# generate a level
 class level_script(script):
     def __init__(self):
         super().__init__()
@@ -48,7 +49,7 @@ class level_script(script):
                 ypos += 1
             xpos += 1
 
-
+# delete an entity from the ecs
 class delete_script(script):
     def __init__(self):
         super().__init__()
@@ -75,6 +76,7 @@ def attack_callback(self, other):
     other_stat = other.get("stats_component")
     other_stat.health -= self_stat.attack
 
+# checks health of the player
 def check_health_callback(self,other):
     self_stat = self.get("stats_component")
     if self_stat.health <= 0:

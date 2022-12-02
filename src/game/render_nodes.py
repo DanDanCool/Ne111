@@ -2,6 +2,7 @@ from modules.render_module import *
 import global_vars
 import numpy
 
+# creates an identity matrix multiplied by a scalar
 def _scale(scale_factor):
     row0 = [1 * scale_factor, 0, 0, 0]
     row1 = [0, 1 * scale_factor, 0, 0]
@@ -9,6 +10,7 @@ def _scale(scale_factor):
     row3 = [0, 0, 0, 1]
     return numpy.array([row0, row1, row2, row3], numpy.float32)
 
+# creates an orthographic projection matrix
 def _ortho(left, right, bot, top):
     row0 = [2.0 / (right - left), 0, 0, - (right + left) / (right - left)]
     row1 = [0, 2.0 / (top - bot), 0, - (top + bot) / (top - bot)]
@@ -16,6 +18,7 @@ def _ortho(left, right, bot, top):
     row3 = [0, 0, 0, 1]
     return numpy.array([row0, row1, row2, row3], numpy.float32)
 
+# creates an affine translation matrix
 def _translate(pos):
     row0 = [1, 0, 0, pos[0]]
     row1 = [0, 1, 0, pos[1]]

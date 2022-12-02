@@ -3,6 +3,11 @@ import importlib
 import pathlib
 import ecs
 
+# the engine class is very barebones, with most functionality being provided by modules
+# the engine will automatically load any python module in the modules folder, see module.py for more details on module
+# structure
+# the engine is also responsible for the main loop, which keeps track of elapsed time and updates all modules
+# accordingly
 class engine:
     def __init__(self):
         self.b_run = True;

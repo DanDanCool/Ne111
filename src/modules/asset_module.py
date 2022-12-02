@@ -1,5 +1,7 @@
 import module
 
+# note: I was going to implement this but the functionality kind of got shoved into the scene module
+# also there performance was not a bad enough to warrant such a solution
 class texture_resource:
     def __init__(self):
         pass

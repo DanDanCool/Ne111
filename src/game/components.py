@@ -1,3 +1,4 @@
+# component base class
 class component:
     def __init__(self):
         pass
@@ -5,6 +6,7 @@ class component:
     def component_callback(self, entity):
         pass
 
+# component base class for registering groups
 class group_component:
     def __init__(self, desc):
         pass

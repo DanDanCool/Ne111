@@ -1,6 +1,7 @@
 import module
 import global_vars
 
+# responsible for the behavioural components in the ecs
 class script_module(module.module):
     def __init__(self):
         super().__init__()
@@ -10,6 +11,11 @@ class script_module(module.module):
         ecs = global_vars.get_ecs()
         self.elapsed_time += ts
 
+        # only update scripts every second to simulate a turn-based environment because I am too lazy to actually
+        # program this into the game
+        # the engine was designed to be real-time, a game object would make turn-based updates elegant as it would not
+        # have to be coded into the engine as some special case, as some things need to be updated frequently, like
+        # input
         if self.elapsed_time < 1000.0:
             return
         else:

@@ -78,6 +78,8 @@ class scene_module(module.module):
             stats_component = game.components.stats_component()
             entity.add("stats_component", stats_component)
 
+        return entity
+
     # we do scene loading here to guarantee that all modules are loaded
     def update(self, ts):
         if self.scene_loaded:
@@ -89,7 +91,7 @@ class scene_module(module.module):
             blueprint = self.load_file(e)
             self.create_entity(blueprint)
 
-        
+
         self.scene_loaded = True
 
 def create_module():

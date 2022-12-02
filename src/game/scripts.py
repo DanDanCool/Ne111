@@ -1,5 +1,5 @@
 # script super class, all scripts inherit from this
-#import level_generation
+import level_generation
 import global_vars
 import random
 import pygame
@@ -16,17 +16,38 @@ class level_script(script):
         super().__init__()
 
     def update(self, entity, ts):
-        pass
-        #generator = level_generation.level_layout_generator()
-        #room = generator.generate_layout()
+        scene_module = global_vars.get_module("scene_module")
+        generator = level_generation.level_layout_generator()
+        room = generator.generate_layout()
 
-        ## WALL_TILE
-        ## EMPTY_TILE
-        ## SPECIAL_TILE
-        #for x in room:
-        #    for y in x:
-        #        if y == level_layout_generator.EMPTY_TILE:
-        #            pass
+        xpos = - generator.x_max / 2
+        for col in room:
+            ypos = - generator.y_max / 2
+            for tile in col:
+                if tile == generator.EMPTY_TILE:
+                    continue
+
+                if tile in [generator.CORNER_WALL_TILE, generator.H_WALL_TILE, generator.V_WALL_TILE]:
+                    bp = scene_module.load_file("wall")
+                    e = scene_module.create_entity(bp)
+                    body = e.get("static_body")
+                    body.position = (xpos, ypos)
+
+                if tile == generator.SPAWN:
+                    bp = scene_module.load_file("player")
+                    e = scene_module.create_entity(bp)
+                    body = e.get("dynamic_body")
+                    body.position = (xpos, ypos)
+
+                if tile == generator.ENEMY:
+                    bp = scene_module.load_file("enemy")
+                    e = scene_module.create_entity(bp)
+                    body = e.get("dynamic_body")
+                    body.position = (xpos, ypos)
+
+                ypos += 1
+            xpos += 1
+
 
 class delete_script(script):
     def __init__(self):

@@ -47,6 +47,11 @@ class pool:
         self.dense = []
         self.components = []
 
+    def clear(self):
+        self.sparse = [NULL_ENTITY] * MAX_ENTITIES
+        self.dense = []
+        self.components = []
+
     def add(self, e, item):
         assert type(e) == int
         assert type(item) == self.desc
@@ -138,6 +143,14 @@ class component_system:
         self.groups = []
         self.group_id = {}
 
+    def clear(self):
+        for p in self.pools:
+            p.clear()
+
+        self.entities = []
+        self.next_entity = NULL_ENTITY
+        self.entity_bitset = [0] * MAX_ENTITIES
+
     def entity_create(self):
         # we store entities no longer in use instead of deleting them
         # a linked list of these entities that are no longer in use is maintained internally, allowing them to be reused
@@ -170,6 +183,7 @@ class component_system:
         temp_id = e_id.identity
         e_id.identity = self.next_entity
         self.next_entity = temp_id
+        self.entity_bitset[e_id.identity] = 0
 
     # groups are a special type of component pool that allows for the efficient iteration over entities with a desired
     # set of components

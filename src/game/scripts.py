@@ -23,8 +23,9 @@ class level_script(script):
 
         xpos = - generator.x_max / 2
         for col in room:
-            ypos = - generator.y_max / 2
+            ypos = 1 - generator.y_max / 2
             for tile in col:
+                ypos += 1
                 if tile == generator.EMPTY_TILE:
                     continue
 
@@ -47,8 +48,7 @@ class level_script(script):
                     e = scene_module.create_entity(bp)
                     body = e.get("dynamic_body")
                     body.position = (xpos, ypos)
-
-                ypos += 1
+                
             xpos += 1
 
 # delete an entity from the ecs

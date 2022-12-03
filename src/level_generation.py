@@ -362,5 +362,7 @@ class level_layout_generator:
         print("~ "*(X+2))
 
 # uncomment for testing
-#l = level_layout_generator(6)
-#l.generate_layout(True)
+"""
+l = level_layout_generator(6)
+l.generate_layout(True)
+"""

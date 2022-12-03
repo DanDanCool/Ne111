@@ -46,7 +46,9 @@ class level_layout_generator:
 
     def generate_layout(self, debug=False):
         """
-
+        Generates a random dungeon level layout.
+        Set debug to TRUE if you want the system to print
+        the map at various stages of development
         """
         map_data, room_bounds = self.create_room_layout(debug)
         populated_map = self.add_features(map_data, room_bounds, debug)
@@ -144,8 +146,22 @@ class level_layout_generator:
                 tile_data[d1[0]][d1[1]] = self.DOOR
                 tile_data[d2[0]][d2[1]] = self.DOOR
 
-                for p in hallway: # loop through hallway list adding hallway tiles
+                for p in hallway: # loop through hallway list adding hallway tiles...
                     tile_data[p[0]][p[1]] = self.HALLWAY
+
+                    # and a quick wall system around them
+                    if tile_data[p[0]-1][p[1]-1] == self.EMPTY_TILE: tile_data[p[0]-1][p[1]-1] = self.CORNER_WALL_TILE
+                    if tile_data[p[0]-1][p[1]] == self.EMPTY_TILE: tile_data[p[0]-1][p[1]] = self.CORNER_WALL_TILE
+                    if tile_data[p[0]-1][p[1]+1] == self.EMPTY_TILE: tile_data[p[0]-1][p[1]+1] = self.CORNER_WALL_TILE
+
+                    if tile_data[p[0]][p[1]-1] == self.EMPTY_TILE: tile_data[p[0]][p[1]-1] = self.CORNER_WALL_TILE
+                    if tile_data[p[0]][p[1]] == self.EMPTY_TILE: tile_data[p[0]][p[1]] = self.CORNER_WALL_TILE
+                    if tile_data[p[0]][p[1]+1] == self.EMPTY_TILE: tile_data[p[0]][p[1]+1] = self.CORNER_WALL_TILE
+
+                    if tile_data[p[0]+1][p[1]-1] == self.EMPTY_TILE: tile_data[p[0]+1][p[1]-1] = self.CORNER_WALL_TILE
+                    if tile_data[p[0]+1][p[1]] == self.EMPTY_TILE: tile_data[p[0]+1][p[1]] = self.CORNER_WALL_TILE
+                    if tile_data[p[0]+1][p[1]+1] == self.EMPTY_TILE: tile_data[p[0]+1][p[1]+1] = self.CORNER_WALL_TILE
+                            
 
                 if (debug):
                 #debugs a sub-section of tile_data that contains the generated hallway
@@ -180,6 +196,19 @@ class level_layout_generator:
 
                 for p in hallway: # loop through hallway list adding points
                     tile_data[p[0]][p[1]] = self.HALLWAY
+
+                     # and a quick wall system around them
+                    if tile_data[p[0]-1][p[1]-1] == self.EMPTY_TILE: tile_data[p[0]-1][p[1]-1] = self.CORNER_WALL_TILE
+                    if tile_data[p[0]-1][p[1]] == self.EMPTY_TILE: tile_data[p[0]-1][p[1]] = self.CORNER_WALL_TILE
+                    if tile_data[p[0]-1][p[1]+1] == self.EMPTY_TILE: tile_data[p[0]-1][p[1]+1] = self.CORNER_WALL_TILE
+
+                    if tile_data[p[0]][p[1]-1] == self.EMPTY_TILE: tile_data[p[0]][p[1]-1] = self.CORNER_WALL_TILE
+                    if tile_data[p[0]][p[1]] == self.EMPTY_TILE: tile_data[p[0]][p[1]] = self.CORNER_WALL_TILE
+                    if tile_data[p[0]][p[1]+1] == self.EMPTY_TILE: tile_data[p[0]][p[1]+1] = self.CORNER_WALL_TILE
+
+                    if tile_data[p[0]+1][p[1]-1] == self.EMPTY_TILE: tile_data[p[0]+1][p[1]-1] = self.CORNER_WALL_TILE
+                    if tile_data[p[0]+1][p[1]] == self.EMPTY_TILE: tile_data[p[0]+1][p[1]] = self.CORNER_WALL_TILE
+                    if tile_data[p[0]+1][p[1]+1] == self.EMPTY_TILE: tile_data[p[0]+1][p[1]+1] = self.CORNER_WALL_TILE
 
                 if (debug):
                 #debugs a sub-section of tile_data that contains the generated hallway

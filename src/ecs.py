@@ -20,7 +20,7 @@ class entity:
         self.system.component_add(name, self.e_id, item)
 
     def has(self, name):
-        self.system.component_has(name, self.e_id)
+        return self.system.component_has(name, self.e_id)
 
     def get(self, name):
         return self.system.component_get(name, self.e_id)
@@ -150,7 +150,7 @@ class component_system:
 
         e_id = entity_id(len(self.entities), 0)
         self.entities.append(e_id)
-        self.entity_bitset.append(0)
+        self.entity_bitset[e_id.identity] = 0
         return e_id
 
     def entity_destroy(self, e):
@@ -225,7 +225,7 @@ class component_system:
         assert name in self.pool_id
         bitset = self.entity_bitset[e.identity]
         p_id = self.pool_id[name]
-        return (bitset & (1 << p_id)) == (1 << p_id)
+        return ((bitset & (1 << p_id)) == (1 << p_id))
 
     def component_get(self, name, e):
         assert name in self.pool_id

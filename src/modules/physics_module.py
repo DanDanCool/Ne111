@@ -24,7 +24,7 @@ class physics_module(module.module):
             new_pos = (body.position[0] + body.delta_position[0], body.position[1] + body.delta_position[1])
             body.delta_position = (0, 0)
             # run callbacks every second, implemented because you would insteantly die when hitting an enemy otherwise
-            if new_pos in bodies and self.elapsed_time >= 1000:
+            if new_pos in bodies and self.elapsed_time >= 250:
                 self.elapsed_time = 0
                 other = bodies[new_pos]
                 body.collision_callback(e, other[0])

@@ -3,7 +3,7 @@ import random
 import math
 
 
-DEFAULT_SIZE = 6
+DEFAULT_SIZE = 4
 
 class level_layout_generator:
     def __init__(self, size=DEFAULT_SIZE, min_room_size = (5,5)):
@@ -52,7 +52,7 @@ class level_layout_generator:
         populated_map = self.add_features(map_data, room_bounds, debug)
 
         return populated_map
-    
+
     def create_room_layout(self, debug=False):
         """
         Creates a matrix of tile IDs representing a 3x3 collection
@@ -139,7 +139,7 @@ class level_layout_generator:
 
                 # now generate a hallway connecting these two doors
                 hallway = self.generate_hallway(d1[0]+1, d1[1], d2[0]-1, d2[1])
-                
+
                 # we now add the doors to the tile_data
                 tile_data[d1[0]][d1[1]] = self.DOOR
                 tile_data[d2[0]][d2[1]] = self.DOOR
@@ -219,7 +219,7 @@ class level_layout_generator:
             dir[0] = 0
         if d[1] == 0:
             dir[1] = 0
-        
+
         # iterate the pointer towards the final position, adding each point
         # it passes through to the hallway list
         counter = 0
@@ -228,7 +228,7 @@ class level_layout_generator:
             pointer[r] = pointer[r] + dir[r] # update pointer poitiion and distance to end point
             d[r] = d[r] - dir[r]
             hallway.append(tuple(pointer))
-            
+
             if d[r] == 0:
                 # if the pointer is now parallel to the door, our direction will no longer work.
                 # draw a straight line to the last point
@@ -242,7 +242,7 @@ class level_layout_generator:
             if counter > 10000:
                 print(TimeoutError, ": could not generate hallway")
                 break
-        
+
         return hallway
 
     def add_features(self, tile_data, room_bounds, debug=False):
@@ -254,10 +254,10 @@ class level_layout_generator:
         for i in range(3):
             for j in range(3):
                 # looping through each grid space in the room array
-                
+
                 if i != 1 and j != 1: # skips the spawn room
                     # we don't want to place treasures here!
-                
+
                     # generate a random number of treasure spawns in the room (biased to have less loot)
                     t_max = int(self.bias_small_rand(self.min_treasure_spawn, self.max_treasure_spawn))
                     if t_max > 0:
@@ -301,11 +301,11 @@ class level_layout_generator:
     # Helper Functions
 
     def bias_small_rand(self, min, max):
-        """ 
+        """
         Generates a random value between the given minimum and maximum.
         Distribution is biased to return values closer to the minimum
         """
-        r = (random.random() * random.random() + random.random())/2 
+        r = (random.random() * random.random() + random.random())/2
         return min + (max - min)*r
 
     def debug(self, arr, title=None):
@@ -329,40 +329,35 @@ class level_layout_generator:
         for i in range(Y):
             print("[", end=" ")
             for j in range(X):
-                match arr[j][i]:
-                    # check for map tiles
-                    case self.EMPTY_TILE:
-                        print(" ", end=" ")
-                    case self.CORNER_WALL_TILE:
-                        print("x", end=" ")
-                    case self.H_WALL_TILE:
-                        print("—", end=" ")
-                    case self.V_WALL_TILE:
-                        print("|", end=" ")
-                    case self.FLOOR_TILE:
-                        print(".", end=" ")
-                    case self.HALLWAY:
-                        print("#", end=" ")
+                tile = arr[j][i]
+                # check for map tiles
+                if tile == self.EMPTY_TILE:
+                    print(" ", end=" ")
+                elif tile == self.CORNER_WALL_TILE:
+                    print("x", end=" ")
+                elif tile == self.H_WALL_TILE:
+                    print("—", end=" ")
+                elif tile == self.V_WALL_TILE:
+                    print("|", end=" ")
+                elif tile == self.FLOOR_TILE:
+                    print(".", end=" ")
+                elif tile == self.HALLWAY:
+                    print("#", end=" ")
+                elif tile == self.DOOR:
+                    print("D", end=" ")
+                elif tile == self.SPAWN:
+                    print("S", end=" ")
+                elif tile == self.EXIT:
+                    print("⌂", end=" ")
+                elif tile == self.PLAYER:
+                    print("\x0c", end=" ")
+                elif tile == self.ENEMY:
+                    print("E", end=" ")
+                elif tile == self.TREASURE:
+                    print("T", end=" ")
+                else: # displays a tile without a specified symbol as (‼)
+                    print("\x13", end=" ")
 
-                    case self.DOOR:
-                        print("D", end=" ")
-                    case self.SPAWN:
-                        print("S", end=" ")
-                    case self.EXIT:
-                        print("⌂", end=" ")
-
-                    
-                    case self.PLAYER:
-                        print("\x0c", end=" ")
-                    case self.ENEMY:
-                        print("E", end=" ")
-                    case self.TREASURE:
-                        print("T", end=" ")
-                       
-
-                    case _: # displays a tile without a specified symbol as (‼)
-                        print("\x13", end=" ")
-                        
             print("]")
         print("~ "*(X+2))
 

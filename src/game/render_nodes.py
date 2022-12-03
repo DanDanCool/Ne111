@@ -37,7 +37,7 @@ def sprite_pass(graph, pass_data):
         index_buffer = []
         offset = 0
         for _, sprite in ecs.view("sprite_component"):
-            scale = _scale(0.1)
+            scale = _scale(0.05)
             translate = _translate(sprite.position)
             for i in range(4):
                 #transform = numpy.matmul(translate, scale)

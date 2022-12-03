@@ -33,6 +33,8 @@ class level_script(script):
                     e = scene_module.create_entity(bp)
                     body = e.get("static_body")
                     body.position = (xpos, ypos)
+                    sprite = e.get("sprite_component")
+                    sprite.position = body.position
 
                 if tile == generator.SPAWN:
                     bp = scene_module.load_file("player")
@@ -41,7 +43,7 @@ class level_script(script):
                     body.position = (xpos, ypos)
 
                 if tile == generator.ENEMY:
-                    bp = scene_module.load_file("enemy")
+                    bp = scene_module.load_file("basic_enemy")
                     e = scene_module.create_entity(bp)
                     body = e.get("dynamic_body")
                     body.position = (xpos, ypos)
@@ -63,10 +65,12 @@ class random_move_script(script):
         super().__init__()
 
     def update(self, entity, ts):
+        if not entity.has("dynamic_body"):
+            return
         x = random.randint(-1,1)
         y = random.randint(-1,1)
-        dynamicbody = entity.get('dynamic_body')
-        dynamicbody.delta_position = [x,y]
+        dynamicbody = entity.get("dynamic_body")
+        dynamicbody.delta_position = (x,y)
 
 def attack_callback(self, other):
     # TODO: attack the other enemy here

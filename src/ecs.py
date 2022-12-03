@@ -90,7 +90,12 @@ class view_iterator:
         e = self.pool.dense[self.idx]
         i = self.idx
         self.idx += 1
-        return entity(self.system.entities[e], self.system), self.pool.components[i]
+
+        # cheap hack: sometimes the ecs gets cleared during iteration which invalidates everything
+        try:
+            return entity(self.system.entities[e], self.system), self.pool.components[i]
+        except:
+            raise StopIteration
 
 # helper class for the view iterator
 class _view:
@@ -114,7 +119,11 @@ class group_iterator:
         e = self.group.dense[self.idx]
         i = self.idx
         self.idx += 1
-        return entity(self.system.entities[e], self.system), self.group.components[i].components()
+
+        try:
+            return entity(self.system.entities[e], self.system), self.group.components[i].components()
+        except:
+            raise StopIteration
 
 # helper class for the group iterator
 class _group:
@@ -146,6 +155,9 @@ class component_system:
     def clear(self):
         for p in self.pools:
             p.clear()
+
+        for g in self.groups:
+            g.clear()
 
         self.entities = []
         self.next_entity = NULL_ENTITY

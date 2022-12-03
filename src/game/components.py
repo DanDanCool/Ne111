@@ -42,6 +42,7 @@ class stats_component(component):
     def __init__(self):
         self.health = 3
         self.attack = 1
+        self.elapsed_time = 0.0
 
 # there is some data duplication here, but regularly the physics engine would update the data for the matrix transforms
 # for simplicity we directly modify the sprite position

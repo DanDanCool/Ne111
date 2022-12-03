@@ -54,7 +54,9 @@ class level_script(script):
                     e = scene_module.create_entity(bp)
                     body = e.get("static_body")
                     body.position = (xpos, ypos)
-                
+                    sprite = e.get("sprite_component")
+                    sprite.position = body.position
+
             xpos += 1
 
 # delete an entity from the ecs
@@ -78,22 +80,28 @@ class random_move_script(script):
         dynamicbody = entity.get("dynamic_body")
         dynamicbody.delta_position = (x,y)
 
-def attack_callback(self, other):
+def attack_callback(self, other, ts):
     # TODO: attack the other enemy here
-    if not other.has("stats_component"):
+    if not (self.has("stats_component") and other.has("stats_component")):
         return
     self_stat = self.get("stats_component")
+    self_stat.elapsed_time += ts
+    if self_stat.elapsed_time < 250.0:
+        return
+
     other_stat = other.get("stats_component")
     other_stat.health -= self_stat.attack
 
 # checks health of the player
-def check_health_callback(self,other):
+def check_health_callback(self, other, ts):
+    if not (self.has("stats_component")):
+        return
     self_stat = self.get("stats_component")
     if self_stat.health <= 0:
         print("You Lose")
         global_vars.get_engine().should_run(False)
 
-def empty_callback(self,other):
+def empty_callback(self, other, ts):
     pass
 
 class player_move_script(script):
@@ -113,12 +121,16 @@ class player_move_script(script):
         if pressed_keys [pygame.K_a]:
             x = -1
         dynamicbody = entity.get('dynamic_body')
-        dynamicbody.delta_position = [x,y]
+        dynamicbody.delta_position = (x,y)
 
-def nextlevel_callback(self,other):
+def nextlevel_callback(self, other, ts):
     if not other.has("player_component"):
         return
-    ecs = global_vars.get_ecs()
-    ecs.clear()
-    generator = level_script()
-    generator.update(None,0)
+    engine = global_vars.get_engine()
+    def callback():
+        ecs = global_vars.get_ecs()
+        ecs.clear()
+        generator = level_script()
+        generator.update(None,0)
+
+    engine.add_callback(callback)

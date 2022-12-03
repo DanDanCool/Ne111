@@ -6,11 +6,9 @@ import global_vars
 class physics_module(module.module):
     def __init__(self):
         super().__init__()
-        self.elapsed_time = 0
 
     def update(self, ts):
         ecs = global_vars.get_ecs()
-        self.elapsed_time += ts
 
         # we use positions as keys so we can easily check whether or not there will be a collision
         # note that this does mean order matters, and order is not necessarily stable, so some funky behaviour can occur
@@ -24,11 +22,10 @@ class physics_module(module.module):
             new_pos = (body.position[0] + body.delta_position[0], body.position[1] + body.delta_position[1])
             body.delta_position = (0, 0)
             # run callbacks every second, implemented because you would insteantly die when hitting an enemy otherwise
-            if new_pos in bodies and self.elapsed_time >= 250:
-                self.elapsed_time = 0
+            if new_pos in bodies:
                 other = bodies[new_pos]
-                body.collision_callback(e, other[0])
-                other[1].collision_callback(other[0], e)
+                body.collision_callback(e, other[0], ts)
+                other[1].collision_callback(other[0], e, ts)
             else:
                 body.position = new_pos
                 sprite.position = new_pos

@@ -60,7 +60,7 @@ class scene_module(module.module):
         if "dynamic_body" in components:
             dynamic_body = game.components.dynamic_body()
             position = components["dynamic_body"]["position"]
-            dynamic_body.position = position
+            dynamic_body.position = (position[0], position[1])
             callback = getattr(game.scripts, components["dynamic_body"]["collision_callback"])
             dynamic_body.collision_callback = callback
             entity.add("dynamic_body", dynamic_body)

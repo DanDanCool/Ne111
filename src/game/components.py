@@ -59,6 +59,9 @@ class static_body(component):
         self.position = ( 0, 0 )
         self.collision_callback = None
 
+class player_component(component):
+    pass
+
 class sprite_dynamic(group_component):
     def __init__(self, desc):
         super().__init__(desc)
@@ -84,3 +87,4 @@ class sprite_static(group_component):
 
     def components(self):
         return (self.sprite, self.physics)
+

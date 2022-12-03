@@ -48,6 +48,12 @@ class level_script(script):
                     e = scene_module.create_entity(bp)
                     body = e.get("dynamic_body")
                     body.position = (xpos, ypos)
+
+                if tile == generator.EXIT:
+                    bp = scene_module.load_file("portal")
+                    e = scene_module.create_entity(bp)
+                    body = e.get("static_body")
+                    body.position = (xpos, ypos)
                 
             xpos += 1
 
@@ -109,3 +115,10 @@ class player_move_script(script):
         dynamicbody = entity.get('dynamic_body')
         dynamicbody.delta_position = [x,y]
 
+def nextlevel_callback(self,other):
+    if not other.has("player_component"):
+        return
+    ecs = global_vars.get_ecs()
+    ecs.clear()
+    generator = level_script()
+    generator.update(None,0)

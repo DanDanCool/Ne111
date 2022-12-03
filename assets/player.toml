@@ -3,5 +3,6 @@ type = "blueprint"
 [components]
 sprite_component = {color = [1,1,0,1]}
 script_component = ["player_move_script"]
+player_component = {}
 dynamic_body = {position = [1,0], collision_callback = "check_health_callback"}
 stats_component = {}

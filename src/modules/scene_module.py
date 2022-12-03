@@ -20,6 +20,7 @@ class scene_module(module.module):
         ecs.register("script_component", game.components.script_component)
         ecs.register("dynamic_body", game.components.dynamic_body)
         ecs.register("static_body", game.components.static_body)
+        ecs.register("player_component", game.components.player_component)
 
         ecs.group_create("sprite_dynamic", game.components.sprite_dynamic)
         ecs.group_create("sprite_static", game.components.sprite_static)
@@ -79,6 +80,10 @@ class scene_module(module.module):
         if "stats_component" in components:
             stats_component = game.components.stats_component()
             entity.add("stats_component", stats_component)
+
+        if "player_component" in components:
+            player_component = game.components.player_component()
+            entity.add("player_component", player_component)
 
         return entity
 

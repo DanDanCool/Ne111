@@ -293,4 +293,4 @@ class component_system:
 
     def group_remove(self, bitset, e):
         group = self.groups[self.group_id[bitset]]
-        group.remove(e.identity())
+        group.remove(e.identity)

@@ -57,6 +57,15 @@ class level_script(script):
                     sprite = e.get("sprite_component")
                     sprite.position = body.position
 
+                if tile == generator.TREASURE:
+                    bp = scene_module.load_file("treasure")
+                    e = scene_module.create_entity(bp)
+                    body = e.get("static_body")
+                    body.position = (xpos, ypos)
+                    sprite = e.get("sprite_component")
+                    sprite.position = body.position
+
+
             xpos += 1
 
 # delete an entity from the ecs
@@ -88,6 +97,7 @@ def attack_callback(self, other, ts):
     self_stat.elapsed_time += ts
     if self_stat.elapsed_time < 250.0:
         return
+    self_stat.elapsed_time = 0.0
 
     other_stat = other.get("stats_component")
     other_stat.health -= self_stat.attack
@@ -127,6 +137,19 @@ def nextlevel_callback(self, other, ts):
     if not other.has("player_component"):
         return
     ecs = global_vars.get_ecs()
+    stats_component = other.get("stats_component")
     ecs.clear()
     generator = level_script()
     generator.update(None,0)
+    for e, player in ecs.view("player_component"):
+        stats = e.get("stats_component")
+        stats.health = stats_component.health
+
+def treasure_callback(self, other, ts):
+    if not other.has("player_component"):
+        return
+    stats_component = other.get("stats_component")
+    stats_component.health += 1
+    print("health", stats_component.health)
+    ecs = global_vars.get_ecs()
+    ecs.entity_destroy(self.e_id)

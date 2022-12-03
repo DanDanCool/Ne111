@@ -1,0 +1,5 @@
+name = "treasure"
+type = "blueprint"
+[components]
+sprite_component = {color = [0,1,0,1]}
+static_body = {collision_callback = "treasure_callback"}

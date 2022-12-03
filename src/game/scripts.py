@@ -126,11 +126,7 @@ class player_move_script(script):
 def nextlevel_callback(self, other, ts):
     if not other.has("player_component"):
         return
-    engine = global_vars.get_engine()
-    def callback():
-        ecs = global_vars.get_ecs()
-        ecs.clear()
-        generator = level_script()
-        generator.update(None,0)
-
-    engine.add_callback(callback)
+    ecs = global_vars.get_ecs()
+    ecs.clear()
+    generator = level_script()
+    generator.update(None,0)

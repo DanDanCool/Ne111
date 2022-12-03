@@ -12,8 +12,6 @@ class engine:
     def __init__(self):
         self.b_run = True;
         self.component_system = ecs.component_system()
-        self.callbacks = []
-
         self.lib = []
         self.modules = {}
 
@@ -45,11 +43,6 @@ class engine:
 
             for _, m in self.modules.items():
                 m.update(dt)
-
-            for c in self.callbacks:
-                c()
-
-            self.callbacks.clear()
 
             last_time = cur_time
 

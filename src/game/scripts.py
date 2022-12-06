@@ -77,6 +77,7 @@ class delete_script(script):
         ecs = global_vars.get_ecs()
         ecs.entity_destroy(entity.e_id)
 
+# enemy random movement
 class random_move_script(script):
     def __init__(self):
         super().__init__()
@@ -90,11 +91,11 @@ class random_move_script(script):
         dynamicbody.delta_position = (x,y)
 
 def attack_callback(self, other, ts):
-    # TODO: attack the other enemy here
     if not (self.has("stats_component") and other.has("stats_component")):
         return
     self_stat = self.get("stats_component")
     self_stat.elapsed_time += ts
+    # delays attack so that player does not instantly die
     if self_stat.elapsed_time < 250.0:
         return
     self_stat.elapsed_time = 0.0
@@ -111,9 +112,12 @@ def check_health_callback(self, other, ts):
         print("You Lose")
         global_vars.get_engine().should_run(False)
 
+# current system expects there to be a callback for every physics component
+# this function is provided so physics components do not require a callback
 def empty_callback(self, other, ts):
     pass
 
+# player movement with wasd
 class player_move_script(script):
     def __init__(self):
         super().__init__()
@@ -133,10 +137,13 @@ class player_move_script(script):
         dynamicbody = entity.get('dynamic_body')
         dynamicbody.delta_position = (x,y)
 
+# this callback generates a new level
 def nextlevel_callback(self, other, ts):
     if not other.has("player_component"):
         return
+    # when gerenating a new level we first destroy all entities
     ecs = global_vars.get_ecs()
+    # saves player stats so that they carry over to next level
     stats_component = other.get("stats_component")
     ecs.clear()
     generator = level_script()
@@ -145,11 +152,13 @@ def nextlevel_callback(self, other, ts):
         stats = e.get("stats_component")
         stats.health = stats_component.health
 
+# adds +1 health when treasure is collected
 def treasure_callback(self, other, ts):
     if not other.has("player_component"):
         return
     stats_component = other.get("stats_component")
     stats_component.health += 1
     print("health", stats_component.health)
+    # destroy the entity to prevent infinite health
     ecs = global_vars.get_ecs()
     ecs.entity_destroy(self.e_id)
